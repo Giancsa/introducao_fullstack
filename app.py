@@ -20,9 +20,29 @@ def inject_globals():
 # Rota da página inicial (rota raiz ou root)
 @app.route("/")
 def index():
+
+    # with controla a conesão e fecha quando não é mais necessária
+    with sqlite3.connect('database.db') as conn:
+        # Retorna os dados do banco no formato compatível com dict
+        conn.row_factory = sqlite3.Row
+
+        contents = conn.execute('''
+            SELECT 
+                c_id,
+                c_title,
+                substr(c_text, 1, 50) || '...' as c_resume
+            FROM content 
+                WHERE c_status = 'on'
+                ORDER BY c_created_at DESC;            
+        ''').fetchall()
+
+    total = len(contents)
+
     return render_template(
         "home.html",
-        tag_title=sitename
+        tag_title=sitename,
+        contents=contents,
+        total=total
     )
 
 
@@ -33,6 +53,10 @@ Criando páginas / rotas → Passos iniciais:
     3) Cria a função para a rota
     4) Desenvolva a função para retornar o template HTML renderizado
 '''
+
+# Rota para exibir um content completo
+@app.route('/view/<int:content')
+
 
 # Rota para '/contacts'
 @app.route("/contacts", methods=['GET', 'POST'])
